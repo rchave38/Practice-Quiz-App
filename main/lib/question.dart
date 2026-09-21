@@ -1,5 +1,7 @@
-// This is the question class which is an abstract class that will be 
-//extended by the fill in the blank and multiple choice question classes.
+/// A single question in a quiz.
+///
+/// Abstract base class extended by [MultipleChoiceQuestion] and
+/// [FillInBlankQuestion].
 abstract class Question {
   final String _question;
 
@@ -10,6 +12,7 @@ abstract class Question {
   void display();
 } //question class
 
+/// A fill-in-the-blank question with one or more acceptable answers.
 // This is the fill in the blank question class which extends the question class.
 class FillInBlankQuestion extends Question {
   final List<String> _acceptableAnswers;
@@ -23,6 +26,7 @@ class FillInBlankQuestion extends Question {
   }
 } //fill in the blank question class
 
+/// A multiple choice question with a list of options and one correct index.
 // This is the multiple choice question class which extends the question class.
 class MultipleChoiceQuestion extends Question {
   final int _correctOptionIndex;
@@ -32,7 +36,8 @@ class MultipleChoiceQuestion extends Question {
   int get correctOptionIndex => _correctOptionIndex;
 
   MultipleChoiceQuestion(super.question, this._options, this._correctOptionIndex);
-  
+
+  /// Returns true if [selectedOptionIndex] is the correct answer.
   bool isCorrect(int selectedOptionIndex) {
     return selectedOptionIndex == _correctOptionIndex;
   }
