@@ -31,6 +31,15 @@ class UiLogic {
       final questionPool = QuestionPool(activeQuiz.questions);
       switch(input){
         case 1:
+          //ask for how many questions then randomize
+          stdout.write('How many questions? (1-${activeQuiz.questions.length}) ');
+          int? count = int.tryParse(stdin.readLineSync() ?? '');
+          //check input
+          if (count == null || count <= 0 || count > activeQuiz.questions.length) {
+            print('Invalid number of questions.');
+            break;
+          }
+          questionPool.startPracticeTest(count);
           print ('Starting ${activeQuiz.title}');
           takeQuiz(questionPool);
           _quizIndex = (_quizIndex + 1) % _quizzes.length;
