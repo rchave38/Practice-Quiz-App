@@ -25,8 +25,6 @@ void main(List<String> arguments) async {
     // Display menu 
     final menu = UiLogic(quizzes);
     menu.displayMenu();
-
-    
     
   } catch (e) {
     print(' Error starting application: $e');
