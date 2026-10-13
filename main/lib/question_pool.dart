@@ -1,69 +1,77 @@
-import 'question_loader.dart';
-import 'quiz.dart';
 import 'question.dart';
-import 'dart:math';
 
 /// Tracks progress and score through a quiz's list of questions.
 class QuestionPool {
-  final List<Question> _allQuestions;
+  List<Question> _allQuestions;
   List<Question> _questions = [];
   int _currentIndex = 0;
   int _score = 0;
 
   QuestionPool(this._allQuestions);
 
-  List<Question> get questions => _questions;
-  int get currentIndex => _currentIndex;
-  int get score => _score;
+  List<Question> get questions {
+  return _questions;
+  }
 
-  /// Randomly selects [count] questions from the full pool to
+  int get currentIndex {
+    return _currentIndex;
+  }
+
+  int get score {
+    return _score;
+  }
+  /// Randomly selects count questions from the full pool to
   /// use for this practice test.
   void startPracticeTest(int count) {
-    final shuffled = List<Question>.from(_allQuestions)..shuffle();
-    _questions = shuffled.take(count).toList();
+    // Copy the list so the original order is not changed
+    List<Question> shuffled = List.from(_allQuestions);
+    shuffled.shuffle();
+
+    // Keep only the first [count] questions
+    _questions = shuffled.sublist(0, count);
     _currentIndex = 0;
     _score = 0;
   }
 
-  /// Submits [userAnswer] for the current question and updates the score.
-  //submit question
-  void submitAnswer(dynamic userAnswer){
-    final currentQuestion = getCurrentQuestion();
+  /// Submits userAnswer for the current question and updates the score.
+  void submitAnswer(dynamic userAnswer) {
+    Question currentQuestion = getCurrentQuestion();
     bool correct = false;
-    if(currentQuestion is MultipleChoiceQuestion){
-      // check if user answer is correct 
-      correct = currentQuestion.isCorrect(userAnswer as int);
-    }else if(currentQuestion is FillInBlankQuestion){
-      //check if user input matches acceptable Answers
+
+    if (currentQuestion is MultipleChoiceQuestion) {
+      // Check if the chosen option number is the right one
+      correct = currentQuestion.isCorrect(userAnswer);
+    } else if (currentQuestion is FillInBlankQuestion) {
+      // Check if the typed text matches one of the acceptable answers
       correct = currentQuestion.acceptableAnswers.contains(userAnswer);
     }
-    //if answer is correct increase score
-    if(correct){_score++;}
+
+    // Add a point if the answer was correct
+    if (correct) {
+      _score++;
+    }
   }
 
   /// Returns the question at the current index.
-  //get the current question at current index in question list
-  Question getCurrentQuestion(){
+  Question getCurrentQuestion() {
     return _questions[_currentIndex];
   }
 
   /// Advances to the next question, if any remain.
-  //get the next question in the question list
-  void goToNextQuestion(){
-     if (_currentIndex < _questions.length){
+  void goToNextQuestion() {
+    if (_currentIndex < _questions.length) {
       _currentIndex++;
-     }
+    }
   }
 
   /// Resets progress and score back to the start.
-  //reset question
-  void resetQuiz(){
+  void resetQuiz() {
     _currentIndex = 0;
     _score = 0;
   }
 
   /// Returns the current score.
-  int trackScore(){
+  int trackScore() {
     return _score;
   }
 }
