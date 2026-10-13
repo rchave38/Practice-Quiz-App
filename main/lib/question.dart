@@ -5,47 +5,69 @@
 abstract class Question {
   final String _question;
 
+  /// Creates a question with the given [_question] text.
   Question(this._question);
 
-  String get question => _question;
+  /// The text of the question shown to the user.
+  String get question {
+    return _question;
+  }
 
-  void display();
-} //question class
+  String display();
+}
 
 /// A fill-in-the-blank question with one or more acceptable answers.
-// This is the fill in the blank question class which extends the question class.
 class FillInBlankQuestion extends Question {
   final List<String> _acceptableAnswers;
-  List<String> get acceptableAnswers => _acceptableAnswers;
 
+  /// Creates a fill-in-the-blank question with the given [question] text
+  /// and list of [_acceptableAnswers].
   FillInBlankQuestion(super.question, this._acceptableAnswers);
 
-  @override
-  void display() {
-    print('Question: $question');
+  /// All answers that are accepted as correct.
+  List<String> get acceptableAnswers {
+    return _acceptableAnswers;
   }
-} //fill in the blank question class
+
+  /// Returns a readable description of this question.
+  @override
+  String display() {
+    return 'FillInBlank: $question';
+  }
+}
 
 /// A multiple choice question with a list of options and one correct index.
-// This is the multiple choice question class which extends the question class.
 class MultipleChoiceQuestion extends Question {
   final int _correctOptionIndex;
   final List<String> _options;
 
-  List<String> get options => _options;
-  int get correctOptionIndex => _correctOptionIndex;
-
+  /// Creates a multiple choice question with the given [question] text,
+  /// list of [_options], and the [_correctOptionIndex] of the right answer.
   MultipleChoiceQuestion(super.question, this._options, this._correctOptionIndex);
+
+  /// The answer choices shown to the user.
+  List<String> get options {
+    return _options;
+  }
+
+  /// The index of the correct option.
+  int get correctOptionIndex {
+    return _correctOptionIndex;
+  }
+
+  /// Returns the number of answer choices.
+  int numberOfOptions() {
+    return _options.length;
+  }
 
   /// Returns true if [selectedOptionIndex] is the correct answer.
   bool isCorrect(int selectedOptionIndex) {
     return selectedOptionIndex == _correctOptionIndex;
   }
 
-  int numberOfOptions() => _options.length;
-
+  /// Returns a readable description of this question.
   @override
-  void display() {
-    print('Question: $question');
+  String display() {
+    return 'MultipleChoice: $question';
   }
-} // multiple choice question class
+}
