@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'question.dart';
 import 'quiz.dart';
-import 'dart:convert';
 
 /// Fetches all quizzes from the course's web service.
 class QuestionLoader {
@@ -12,49 +12,52 @@ class QuestionLoader {
     int i = 1;
 
     while (true) {
-      String formattedIndex = i.toString().padLeft(2, '0');
-      final url = Uri.parse(
-        'https://www.cs.utep.edu/cheon/cs4381/homework/quiz/?quiz=quiz$formattedIndex');
+      // Turns 1 into "01", 2 into "02"
+      String quizNumber = i.toString().padLeft(2, '0');
+      Uri url = Uri.parse(
+          'https://www.cs.utep.edu/cheon/cs4381/homework/quiz/?quiz=quiz$quizNumber');
 
       try {
-        //200 means success anything else is failure
-        final response = await http.get(url);
+        // 200 means success, anything else is failure
+        var response = await http.get(url);
         if (response.statusCode != 200) break;
 
-        // to prevent 'FormatException: Unexpected extension byte (at offset 1499)'
-        final bodyString = utf8.decode(response.bodyBytes, allowMalformed: true);
-        final jsonMap = json.decode(bodyString) as Map<String, dynamic>;
-        final bool isSuccess = jsonMap['response'] ?? false;
+        // Decode manually to prevent 'FormatException: Unexpected extension byte'
+        String bodyString = utf8.decode(response.bodyBytes, allowMalformed: true);
+        Map<String, dynamic> jsonMap = json.decode(bodyString);
+
+        // Server says "response": false when there are no more quizzes
+        bool isSuccess = jsonMap['response'] ?? false;
         if (!isSuccess) break;
 
-        final quizMap = jsonMap['quiz'] as Map<String, dynamic>;
-        final String title = quizMap['name'] as String;
-        final questionList = quizMap['questions'] as List<dynamic>;
+        // Pull the title and question list out of the JSON
+        Map<String, dynamic> quizMap = jsonMap['quiz'];
+        String title = quizMap['name'];
+        List<dynamic> questionList = quizMap['questions'];
 
-        List<Question> currentQuizQuestions = [];
-        for (int j = 0; j < questionList.length; j++) {
-          //get the Map 
-          final typeMap = questionList[j] as Map<String, dynamic>;
-          final type = typeMap['type'];
-          if (type == 1) {
-            //get stem, options, answer to build List<Question>
-            final stem = typeMap['stem'] as String;
-            final options = (typeMap['options'] as List).cast<String>();
-            final answer = typeMap['answer'] as int;
-            currentQuizQuestions.add(MultipleChoiceQuestion(stem, options, answer));
+        // Turn each JSON question into a Question object
+        List<Question> questions = [];
+        for (var questionMap in questionList) {
+          String stem = questionMap['stem'];
+
+          if (questionMap['type'] == 1) {
+            // Type 1 = multiple choice
+            List<String> options = List<String>.from(questionMap['options']);
+            int answer = questionMap['answer'];
+            questions.add(MultipleChoiceQuestion(stem, options, answer));
           } else {
-            //get stem, acceptableAnswers to build List<Question>
-            final stem = typeMap['stem'] as String;
-            final acceptableAnswers = (typeMap['answer'] as List).cast<String>();
-            currentQuizQuestions.add(FillInBlankQuestion(stem, acceptableAnswers));
+            // Any other type = fill in the blank
+            List<String> answers = List<String>.from(questionMap['answer']);
+            questions.add(FillInBlankQuestion(stem, answers));
           }
         }
-        //allQuizzes in a quiz list
-        allQuizzes.add(Quiz(title, currentQuizQuestions));
+
+        allQuizzes.add(Quiz(title, questions));
         print('Loaded $title ($i)');
         i++;
       } catch (e) {
-        print('Stopped at i=$i: $e'); // in case a quiz fails to load it shows the index of that quiz
+        // If a quiz fails to load, show which one
+        print('Stopped at i=$i: $e');
         break;
       }
     }
