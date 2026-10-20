@@ -32,9 +32,17 @@ class MainMenu extends StatelessWidget {
               child: const Text('Create a Quiz'),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const TakeQuizScreen()));
-            }, child: const Text('Take a Quiz')),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TakeQuizScreen(),
+                  ),
+                );
+              },
+              child: const Text('Take a Quiz'),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
