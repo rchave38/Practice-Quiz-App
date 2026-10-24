@@ -1,7 +1,9 @@
+import 'package:dartpedia/score_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cli/question_pool.dart';
 import 'package:cli/question_loader.dart';
 import 'package:cli/quiz.dart';
+import 'package:cli/question.dart';
 
 class TakeQuizScreen extends StatefulWidget {
   const TakeQuizScreen({super.key});
@@ -50,7 +52,55 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
                 'Question ${questionPool!.currentIndex + 1} of ${questionPool!.questions.length}',
               ),
               const SizedBox(height: 16),
-              Text(question.question), 
+              Text(question.question),
+              if (question is MultipleChoiceQuestion)
+                for (int i = 0; i < question.options.length; i++)
+                  ElevatedButton(
+                    onPressed: () {
+                      questionPool!.submitAnswer(i + 1);
+                      if (questionPool!.currentIndex ==
+                          questionPool!.questions.length - 1) {
+                        // Quiz is finished, navigate to score screen
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScoreScreen(
+                              score: questionPool!.score,
+                              total: questionPool!.questions.length,
+                            ),
+                          ),
+                        );
+                      } else {
+                        setState(() {
+                          questionPool!.goToNextQuestion();
+                        });
+                      }
+                    },
+                    child: Text(question.options[i]),
+                  ),
+              if (question is FillInBlankQuestion)
+                TextField(
+                  onSubmitted: (answer) {
+                    questionPool!.submitAnswer(answer);
+                    if (questionPool!.currentIndex ==
+                        questionPool!.questions.length - 1) {
+                      // Quiz is finished, navigate to score screen
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScoreScreen(
+                              score: questionPool!.score,
+                              total: questionPool!.questions.length,
+                            ),
+                        ),
+                      );
+                    } else {
+                      setState(() {
+                        questionPool!.goToNextQuestion();
+                      });
+                    }
+                  },
+                ),
             ],
           ),
         ),

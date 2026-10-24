@@ -2,7 +2,9 @@ import 'package:dartpedia/review_incorrect_answers.dart';
 import 'package:flutter/material.dart';
 
 class ScoreScreen extends StatelessWidget {
-  const ScoreScreen({super.key});
+  final int score;
+  final int total;
+  const ScoreScreen({super.key, required this.score, required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -17,9 +19,9 @@ class ScoreScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Score: [Your Score Here]'),
+              Text('Score: $score/$total'),
               const SizedBox(height: 8),
-              const Text('Incorrect Answers: [0/0]'),
+              Text('Incorrect Answers: ${total - score}/$total'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
