@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dartpedia/take_quiz_screen.dart';
 
 class CreateQuizScreen extends StatefulWidget{
-  const CreateQuizScreen({super.key});
+  final String user;
+  final String pin;
+  const CreateQuizScreen({super.key, required this.user, required this.pin});
 
   @override
   State<CreateQuizScreen> createState() => _CreateQuizScreenState();
@@ -54,6 +56,8 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
                     builder: (context) => TakeQuizScreen(
                       questionCount: count,
                       title: titleController.text,
+                      user: widget.user,
+                      pin: widget.pin,
                     ),
                   ),
                 );

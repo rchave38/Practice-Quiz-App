@@ -8,10 +8,14 @@ import 'package:cli/question.dart';
 class TakeQuizScreen extends StatefulWidget {
   final int questionCount;
   final String title;
+  final String user;
+  final String pin;
   const TakeQuizScreen({
     super.key,
     required this.questionCount,
     this.title = 'Quiz', // used when no title is given
+    required this.user,
+    required this.pin,
   });
 
   @override
@@ -28,15 +32,25 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
     loadQuiz();
   }
 
+  /// Loads every quiz from the server and starts a practice test
+  /// with [TakeQuizScreen.questionCount] random questions.
   Future loadQuiz() async {
     QuestionLoader loader = QuestionLoader();
-    List<Quiz> quizzes = await loader.getQuizzesFromUrl();
-    Quiz quiz = quizzes[0];
-    final pool = QuestionPool(quiz.questions);
-    // Don't ask for more questions than the quiz has
+    List<Quiz> quizzes = await loader.getQuizzesFromUrl(
+      user: widget.user,
+      pin: widget.pin,
+    );
+    // Combine the questions from every quiz into one pool
+    List<Question> allQuestions = [];
+    for (Quiz quiz in quizzes) {
+      allQuestions.addAll(quiz.questions);
+    }
+    final pool = QuestionPool(allQuestions);
+
+    // Don't ask for more questions than the pool has
     int count = widget.questionCount;
-    if (count > quiz.questions.length) {
-      count = quiz.questions.length;
+    if (count > allQuestions.length) {
+      count = allQuestions.length;
     }
     pool.startPracticeTest(count);
 

@@ -1,11 +1,12 @@
 import 'package:dartpedia/create_quiz_screen.dart';
 import 'package:dartpedia/take_quiz_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:dartpedia/score_screen.dart';
 import 'package:dartpedia/login_screen.dart';
 
 class MainMenu extends StatelessWidget {
-  const MainMenu({super.key});
+  final String user;
+  final String pin;
+  const MainMenu({super.key, required this.user, required this.pin});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +26,8 @@ class MainMenu extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const CreateQuizScreen(),
+                    builder: (context) =>
+                        CreateQuizScreen(user: user, pin: pin),
                   ),
                 );
               },
@@ -34,10 +36,11 @@ class MainMenu extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TakeQuizScreen(questionCount: 5),
+                    builder: (context) =>
+                        TakeQuizScreen(questionCount: 5, user: user, pin: pin),
                   ),
                 );
               },
@@ -46,17 +49,7 @@ class MainMenu extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ScoreScreen(score: 0, total: 0, incorrect: [],)),
-                );
-              },
-              child: const Text('View Quiz Results'),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );

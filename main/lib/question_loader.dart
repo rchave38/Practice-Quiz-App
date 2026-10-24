@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import 'question.dart';
 import 'quiz.dart';
 
@@ -7,15 +9,27 @@ import 'quiz.dart';
 class QuestionLoader {
   /// Requests quiz01, quiz02, ... until the server responds with
   /// `"response": false`, and returns all quizzes loaded along the way.
-  Future<List<Quiz>> getQuizzesFromUrl() async {
+  Future<List<Quiz>> getQuizzesFromUrl({String? user, String? pin}) async {
     List<Quiz> allQuizzes = [];
     int i = 1;
 
     while (true) {
       // Turns 1 into "01", 2 into "02"
       String quizNumber = i.toString().padLeft(2, '0');
-      Uri url = Uri.parse(
-          'https://www.cs.utep.edu/cheon/cs4381/homework/quiz/?quiz=quiz$quizNumber');
+      Uri url;
+      if (user != null && pin != null) {
+        // HW2: authenticated quiz service
+        url = Uri.https(
+          'www.cs.utep.edu',
+          '/cheon/cs4381/homework/quiz/quiz.php',
+          {'user': user, 'pin': pin, 'quiz': 'quiz$quizNumber'},
+        );
+      } else {
+        // HW1: original public URL (used by the CLI)
+        url = Uri.parse(
+          'https://www.cs.utep.edu/cheon/cs4381/homework/quiz/?quiz=quiz$quizNumber',
+        );
+      }
 
       try {
         // 200 means success, anything else is failure
@@ -23,7 +37,10 @@ class QuestionLoader {
         if (response.statusCode != 200) break;
 
         // Decode manually to prevent 'FormatException: Unexpected extension byte'
-        String bodyString = utf8.decode(response.bodyBytes, allowMalformed: true);
+        String bodyString = utf8.decode(
+          response.bodyBytes,
+          allowMalformed: true,
+        );
         Map<String, dynamic> jsonMap = json.decode(bodyString);
 
         // Server says "response": false when there are no more quizzes
@@ -31,7 +48,10 @@ class QuestionLoader {
         if (!isSuccess) break;
 
         // Pull the title and question list out of the JSON
-        Map<String, dynamic> quizMap = jsonMap['quiz'];
+        // quiz.php may send the quiz as a JSON-encoded string
+        var quizData = jsonMap['quiz'];
+        Map<String, dynamic> quizMap =
+            quizData is String ? json.decode(quizData) : quizData;
         String title = quizMap['name'];
         List<dynamic> questionList = quizMap['questions'];
 
