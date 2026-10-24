@@ -48,7 +48,7 @@ class MainMenu extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ScoreScreen(score: 0, total: 0)),
+                  MaterialPageRoute(builder: (context) => const ScoreScreen(score: 0, total: 0, incorrect: [],)),
                 );
               },
               child: const Text('View Quiz Results'),

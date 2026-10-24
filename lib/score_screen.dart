@@ -1,10 +1,12 @@
 import 'package:dartpedia/review_incorrect_answers.dart';
 import 'package:flutter/material.dart';
+import 'package:cli/question.dart';
 
 class ScoreScreen extends StatelessWidget {
   final int score;
   final int total;
-  const ScoreScreen({super.key, required this.score, required this.total});
+  final List<Question> incorrect;
+  const ScoreScreen({super.key, required this.score, required this.total, required this.incorrect});
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +29,11 @@ class ScoreScreen extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ReviewIncorrectAnswers()),
+                    MaterialPageRoute(builder: (context) => ReviewIncorrectAnswers(incorrect: incorrect,)),
                   );
                 },
                 child: const Text('Review Incorrect Answers'),
+                
               ),
               const SizedBox(height: 16),
               ElevatedButton(

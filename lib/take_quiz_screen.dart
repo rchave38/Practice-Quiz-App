@@ -14,6 +14,7 @@ class TakeQuizScreen extends StatefulWidget {
 
 class _TakeQuizScreenState extends State<TakeQuizScreen> {
   QuestionPool? questionPool;
+  List<Question> incorrect = [];
 
   @override
   void initState() {
@@ -57,7 +58,11 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
                 for (int i = 0; i < question.options.length; i++)
                   ElevatedButton(
                     onPressed: () {
+                      int before = questionPool!.score;
                       questionPool!.submitAnswer(i + 1);
+                      if (questionPool!.score == before) {
+                        incorrect.add(question);
+                      }
                       if (questionPool!.currentIndex ==
                           questionPool!.questions.length - 1) {
                         // Quiz is finished, navigate to score screen
@@ -67,6 +72,7 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
                             builder: (context) => ScoreScreen(
                               score: questionPool!.score,
                               total: questionPool!.questions.length,
+                              incorrect: incorrect,
                             ),
                           ),
                         );
@@ -81,7 +87,11 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
               if (question is FillInBlankQuestion)
                 TextField(
                   onSubmitted: (answer) {
+                    int before = questionPool!.score;
                     questionPool!.submitAnswer(answer);
+                    if (questionPool!.score == before) {
+                      incorrect.add(question);
+                    }
                     if (questionPool!.currentIndex ==
                         questionPool!.questions.length - 1) {
                       // Quiz is finished, navigate to score screen
@@ -91,6 +101,7 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
                           builder: (context) => ScoreScreen(
                               score: questionPool!.score,
                               total: questionPool!.questions.length,
+                              incorrect: incorrect,
                             ),
                         ),
                       );
