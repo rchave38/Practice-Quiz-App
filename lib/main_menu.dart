@@ -37,7 +37,7 @@ class MainMenu extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const TakeQuizScreen(),
+                    builder: (context) => const TakeQuizScreen(questionCount: 5),
                   ),
                 );
               },

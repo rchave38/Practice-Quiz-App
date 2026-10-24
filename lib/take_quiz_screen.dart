@@ -6,7 +6,13 @@ import 'package:cli/quiz.dart';
 import 'package:cli/question.dart';
 
 class TakeQuizScreen extends StatefulWidget {
-  const TakeQuizScreen({super.key});
+  final int questionCount;
+  final String title;
+  const TakeQuizScreen({
+    super.key,
+    required this.questionCount,
+    this.title = 'Quiz', // used when no title is given
+  });
 
   @override
   State<TakeQuizScreen> createState() => _TakeQuizScreenState();
@@ -27,7 +33,12 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
     List<Quiz> quizzes = await loader.getQuizzesFromUrl();
     Quiz quiz = quizzes[0];
     final pool = QuestionPool(quiz.questions);
-    pool.startPracticeTest(5); //[5 questions for practice test]
+    // Don't ask for more questions than the quiz has
+    int count = widget.questionCount;
+    if (count > quiz.questions.length) {
+      count = quiz.questions.length;
+    }
+    pool.startPracticeTest(count);
 
     setState(() {
       questionPool = pool;
@@ -42,7 +53,7 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
 
     final question = questionPool!.getCurrentQuestion();
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.blue, title: const Text('Quiz')),
+      appBar: AppBar(backgroundColor: Colors.blue, title: Text(widget.title.isEmpty ? 'Quiz' : widget.title)),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Center(
@@ -86,6 +97,7 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
                   ),
               if (question is FillInBlankQuestion)
                 TextField(
+                  key: ValueKey(questionPool!.currentIndex), // This ensures the TextField is rebuilt for each new question
                   onSubmitted: (answer) {
                     int before = questionPool!.score;
                     questionPool!.submitAnswer(answer);

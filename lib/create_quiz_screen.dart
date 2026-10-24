@@ -1,7 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:dartpedia/take_quiz_screen.dart';
 
-class CreateQuizScreen extends StatelessWidget{
+class CreateQuizScreen extends StatefulWidget{
   const CreateQuizScreen({super.key});
+
+  @override
+  State<CreateQuizScreen> createState() => _CreateQuizScreenState();
+}
+
+class _CreateQuizScreenState extends State<CreateQuizScreen> {
+  final titleController = TextEditingController();
+  final amountController = TextEditingController();
+
+  @override
+  void dispose() {
+    // Free the controller when this screen is closed
+    titleController.dispose();
+    amountController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +32,31 @@ class CreateQuizScreen extends StatelessWidget{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const TextField(decoration: InputDecoration(labelText: 'Quiz Title')),
-            const TextField(decoration: InputDecoration(labelText: 'Question Amount:')),
+            TextField(
+              controller: titleController,
+              decoration: const InputDecoration(labelText: 'Quiz Title'),
+            ),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Question Amount:'),
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context);
+                // tryParse gives null instead of crashing on bad input
+                int? count = int.tryParse(amountController.text);
+                if (count == null || count < 1) return;
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TakeQuizScreen(
+                      questionCount: count,
+                      title: titleController.text,
+                    ),
+                  ),
+                );
               },
               child: const Text('Create Quiz'),
             ),
