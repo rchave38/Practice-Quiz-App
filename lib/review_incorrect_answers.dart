@@ -25,35 +25,40 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
         backgroundColor: Colors.blue,
         title: const Text('Review Incorrect Answers'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.incorrect.isEmpty)
-                const Text('No incorrect answers!')
-              else
-                questionPage(),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('Back to Score Screen'),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (widget.incorrect.isEmpty)
+                      const Text('No incorrect answers!')
+                    else
+                      questionPage(),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Back to Score Screen'),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
+          if (widget.incorrect.isNotEmpty) navigationButtons(),
+        ],
       ),
     );
   }
 
-  /// Shows the current question, its correct answer, and Previous/Next buttons.
+  /// Shows the current question and its correct answer.
   Widget questionPage() {
     final question = widget.incorrect[index];
-    final isFirst = index == 0;
-    final isLast = index == widget.incorrect.length - 1;
 
     return Column(
       children: [
@@ -64,23 +69,31 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
         Text(question.question),
         const SizedBox(height: 8),
         Text('Answer: ${question.correctAnswer}'),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              // null greys the button out
-              onPressed: isFirst ? null : () => setState(() => index--),
-              child: const Text('Previous'),
-            ),
-            const SizedBox(width: 16),
-            ElevatedButton(
-              onPressed: isLast ? null : () => setState(() => index++),
-              child: const Text('Next'),
-            ),
-          ],
-        ),
       ],
+    );
+  }
+
+  /// Previous and Next buttons pinned to the bottom corners.
+  Widget navigationButtons() {
+    final isFirst = index == 0;
+    final isLast = index == widget.incorrect.length - 1;
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ElevatedButton(
+            // null greys the button out
+            onPressed: isFirst ? null : () => setState(() => index--),
+            child: const Text('Previous'),
+          ),
+          ElevatedButton(
+            onPressed: isLast ? null : () => setState(() => index++),
+            child: const Text('Next'),
+          ),
+        ],
+      ),
     );
   }
 }
