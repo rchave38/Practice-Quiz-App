@@ -1,19 +1,28 @@
+import 'package:cli/question.dart';
+import 'package:cli/question_loader.dart';
+import 'package:cli/question_pool.dart';
 import 'package:dartpedia/score_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:cli/question_pool.dart';
-import 'package:cli/question_loader.dart';
-import 'package:cli/quiz.dart';
-import 'package:cli/question.dart';
 
+/// Screen that loads questions from the server and shows them one at a time.
 class TakeQuizScreen extends StatefulWidget {
+  /// How many questions the practice test should have.
   final int questionCount;
+
+  /// Title shown in the app bar.
   final String title;
+
+  /// The logged-in user's username.
   final String user;
+
+  /// The logged-in user's PIN.
   final String pin;
+
+  /// Creates a quiz screen with [questionCount] questions.
   const TakeQuizScreen({
     super.key,
     required this.questionCount,
-    this.title = 'Quiz', // used when no title is given
+    this.title = 'Quiz',
     required this.user,
     required this.pin,
   });
@@ -23,13 +32,11 @@ class TakeQuizScreen extends StatefulWidget {
 }
 
 class _TakeQuizScreenState extends State<TakeQuizScreen> {
+  /// The practice test, or null while it is still loading.
   QuestionPool? questionPool;
-  List<Question> incorrect = [];
-  String? error; // set when loading fails
 
-  // Answers saved by question number, so the user can go back and change them
-  Map<int, dynamic> answers = {};
-  Map<int, String> answerLabels = {}; // the answer text shown on screen
+  /// Message shown when loading fails, or null if there is none.
+  String? error;
 
   @override
   void initState() {
@@ -39,33 +46,20 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
 
   /// Loads every quiz from the server and starts a practice test
   /// with [TakeQuizScreen.questionCount] random questions.
-  Future loadQuiz() async {
+  Future<void> loadQuiz() async {
     try {
-      QuestionLoader loader = QuestionLoader();
-      List<Quiz> quizzes = await loader.getQuizzesFromUrl(
+      List<Question> allQuestions = await QuestionLoader().getAllQuestions(
         user: widget.user,
         pin: widget.pin,
       );
-      // Combine the questions from every quiz into one pool
-      List<Question> allQuestions = [];
-      for (Quiz quiz in quizzes) {
-        allQuestions.addAll(quiz.questions);
-      }
       final pool = QuestionPool(allQuestions);
+      pool.startPracticeTest(widget.questionCount);
 
-      // Don't ask for more questions than the pool has
-      int count = widget.questionCount;
-      if (count > allQuestions.length) {
-        count = allQuestions.length;
-      }
-      pool.startPracticeTest(count);
-
-      if (!mounted) return; // screen was closed while loading
+      if (!mounted) return; // the screen was closed while loading
       setState(() {
         questionPool = pool;
       });
     } catch (e) {
-      // No internet, server down, or wrong login: show a message instead of spinning
       if (!mounted) return;
       setState(() {
         error = 'Could not load quizzes. Check your connection and try again.';
@@ -73,102 +67,12 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (error != null) {
-      return Scaffold(
-        appBar: AppBar(backgroundColor: Colors.blue, title: const Text('Quiz')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(error!),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  // Clear the error so the spinner shows, then try again
-                  setState(() {
-                    error = null;
-                  });
-                  loadQuiz();
-                },
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (questionPool == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    final question = questionPool!.getCurrentQuestion();
-    final index = questionPool!.currentIndex;
-    final total = questionPool!.questions.length;
-
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: Text(widget.title.isEmpty ? 'Quiz' : widget.title),
-      ),
-      body: Column(
-        children: [
-          // Progress bar at the top: fills up as questions are answered
-          LinearProgressIndicator(value: answers.length / total),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Question ${index + 1} of $total'),
-                    const SizedBox(height: 16),
-                    Text(question.question),
-                    const SizedBox(height: 16),
-                    if (question is MultipleChoiceQuestion)
-                      for (int i = 0; i < question.options.length; i++)
-                        ElevatedButton(
-                          onPressed: () {
-                            answerQuestion(i + 1, question.options[i]);
-                          },
-                          child: Text(question.options[i]),
-                        ),
-                    if (question is FillInBlankQuestion)
-                      TextField(
-                        key: ValueKey(index), // fresh, empty TextField for each question
-                        onSubmitted: (answer) {
-                          answerQuestion(answer, answer);
-                        },
-                      ),
-                    if (answerLabels[index] != null)
-                      Text('Your answer: ${answerLabels[index]}'),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          // null greys the button out on the first question
-                          onPressed: index > 0 ? goBack : null,
-                          child: const Text('Previous'),
-                        ),
-                        ElevatedButton(
-                          // null greys the button out on the last question
-                          onPressed: index < total - 1 ? goForward : null,
-                          child: const Text('Next'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  /// Clears the error and tries loading again.
+  void retry() {
+    setState(() {
+      error = null;
+    });
+    loadQuiz();
   }
 
   /// Moves to the previous question.
@@ -178,49 +82,24 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
     });
   }
 
-  /// Moves to the next question without answering.
+  /// Moves to the next question.
   void goForward() {
     setState(() {
       questionPool!.goToNextQuestion();
     });
   }
 
-  /// Saves [answer] for the current question, then moves to the next one.
-  /// On the last question, it finishes the quiz instead.
-  void answerQuestion(dynamic answer, String label) {
-    int index = questionPool!.currentIndex;
-    answers[index] = answer;
-    answerLabels[index] = label;
-
-    if (index == questionPool!.questions.length - 1) {
-      finishQuiz();
-    } else {
-      goForward();
-    }
+  /// Saves [answer] for the current question. It is scored on submit.
+  void saveAnswer(dynamic answer) {
+    setState(() {
+      questionPool!.saveAnswer(answer);
+    });
   }
 
-  /// Scores every saved answer, then opens the score screen.
-  ///
-  /// Scoring happens here at the end (not on each tap) so that going back
-  /// and changing an answer doesn't count it twice.
+  /// Scores all answers and opens the score screen.
   void finishQuiz() {
     final pool = questionPool!;
-    pool.resetQuiz(); // back to question 1, score 0
-    incorrect = [];
-
-    for (int i = 0; i < pool.questions.length; i++) {
-      int before = pool.score;
-      if (answers.containsKey(i)) {
-        pool.submitAnswer(answers[i]);
-      }
-      // Score didn't go up, so it was wrong (or skipped)
-      if (pool.score == before) {
-        incorrect.add(pool.getCurrentQuestion());
-      }
-      if (i < pool.questions.length - 1) {
-        pool.goToNextQuestion();
-      }
-    }
+    List<Question> incorrect = pool.gradeAnswers();
 
     Navigator.pushReplacement(
       context,
@@ -229,6 +108,120 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
           score: pool.score,
           total: pool.questions.length,
           incorrect: incorrect,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (error != null) {
+      return errorScreen();
+    }
+    if (questionPool == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final pool = questionPool!;
+    final question = pool.getCurrentQuestion();
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blue,
+        title: Text(widget.title.isEmpty ? 'Quiz' : widget.title),
+      ),
+      body: Column(
+        children: [
+          // Fills up as questions are answered
+          LinearProgressIndicator(
+            value: pool.answeredCount / pool.questions.length,
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Question ${pool.currentIndex + 1} of ${pool.questions.length}',
+                    ),
+                    const SizedBox(height: 16),
+                    if (question.figureUrl != null)
+                      Image.network(question.figureUrl!, height: 200),
+                    Text(question.question),
+                    const SizedBox(height: 16),
+                    if (question is MultipleChoiceQuestion)
+                      for (int i = 0; i < question.options.length; i++)
+                        optionButton(i + 1, question.options[i]),
+                    if (question is FillInBlankQuestion)
+                      TextFormField(
+                        // A new key gives each question its own text box
+                        key: ValueKey(pool.currentIndex),
+                        initialValue: pool.currentAnswer ?? '',
+                        onChanged: saveAnswer,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  // null greys the button out
+                  onPressed: pool.isFirstQuestion ? null : goBack,
+                  child: const Text('Previous'),
+                ),
+                if (pool.isLastQuestion)
+                  ElevatedButton(
+                    onPressed: finishQuiz,
+                    child: const Text('Submit Quiz'),
+                  )
+                else
+                  ElevatedButton(
+                    onPressed: goForward,
+                    child: const Text('Next'),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A button for option [number]. The selected option is shown in blue.
+  Widget optionButton(int number, String text) {
+    bool selected = questionPool!.currentAnswer == number;
+
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: selected ? Colors.blue : null,
+        foregroundColor: selected ? Colors.white : null,
+      ),
+      onPressed: () {
+        saveAnswer(number);
+      },
+      child: Text(text),
+    );
+  }
+
+  /// Shown instead of the quiz when loading fails.
+  Widget errorScreen() {
+    return Scaffold(
+      appBar: AppBar(backgroundColor: Colors.blue, title: const Text('Quiz')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(error!),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: retry, child: const Text('Retry')),
+          ],
         ),
       ),
     );

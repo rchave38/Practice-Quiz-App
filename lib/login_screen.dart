@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:dartpedia/main_menu.dart';
 import 'package:cli/login_service.dart';
+import 'package:dartpedia/main_menu.dart';
+import 'package:flutter/material.dart';
 
+/// Screen where the user logs in with their UTEP username and PIN.
 class LoginScreen extends StatefulWidget {
+  /// Creates the login screen.
   const LoginScreen({super.key});
 
   @override
@@ -12,20 +14,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final userController = TextEditingController();
   final pinController = TextEditingController();
+
+  /// Whether the login is being checked with the server.
   bool loading = false;
+
+  /// Message shown when the login fails, or null if there is none.
   String? error;
 
   @override
   void dispose() {
-    // Free the controller when this screen is closed
     userController.dispose();
     pinController.dispose();
     super.dispose();
   }
 
-  /// Checks the login with the server and opens Main Menu if it's valid.
+  /// Checks the login with the server and opens the main menu if it's valid.
   Future<void> logIn() async {
-    // Show the spinner and clear any old error
     setState(() {
       loading = true;
       error = null;
@@ -41,10 +45,8 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainMenu(
-            user: userController.text,
-            pin: pinController.text,
-          ),
+          builder: (context) =>
+              MainMenu(user: userController.text, pin: pinController.text),
         ),
       );
     } else {

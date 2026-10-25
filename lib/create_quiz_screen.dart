@@ -1,9 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:dartpedia/take_quiz_screen.dart';
+import 'package:flutter/material.dart';
 
-class CreateQuizScreen extends StatefulWidget{
+/// Screen where the user names a quiz and picks how many questions it has.
+class CreateQuizScreen extends StatefulWidget {
+  /// The logged-in user's username.
   final String user;
+
+  /// The logged-in user's PIN.
   final String pin;
+
+  /// Creates the screen for the given [user] and [pin].
   const CreateQuizScreen({super.key, required this.user, required this.pin});
 
   @override
@@ -16,10 +22,27 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
 
   @override
   void dispose() {
-    // Free the controller when this screen is closed
     titleController.dispose();
     amountController.dispose();
     super.dispose();
+  }
+
+  /// Starts the quiz if the question amount is a positive number.
+  void createQuiz() {
+    int? count = int.tryParse(amountController.text);
+    if (count == null || count < 1) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TakeQuizScreen(
+          questionCount: count,
+          title: titleController.text,
+          user: widget.user,
+          pin: widget.pin,
+        ),
+      ),
+    );
   }
 
   @override
@@ -45,23 +68,7 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                // tryParse gives null instead of crashing on bad input
-                int? count = int.tryParse(amountController.text);
-                if (count == null || count < 1) return;
-
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => TakeQuizScreen(
-                      questionCount: count,
-                      title: titleController.text,
-                      user: widget.user,
-                      pin: widget.pin,
-                    ),
-                  ),
-                );
-              },
+              onPressed: createQuiz,
               child: const Text('Create Quiz'),
             ),
           ],

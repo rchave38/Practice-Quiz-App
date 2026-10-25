@@ -1,8 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:cli/question.dart';
+import 'package:flutter/material.dart';
 
+/// Screen that shows each incorrectly answered question with its correct
+/// answer, one at a time.
 class ReviewIncorrectAnswers extends StatefulWidget {
+  /// Questions that were answered incorrectly or skipped.
   final List<Question> incorrect;
+
+  /// Creates a review screen for the [incorrect] questions.
   const ReviewIncorrectAnswers({super.key, required this.incorrect});
 
   @override
@@ -10,6 +15,7 @@ class ReviewIncorrectAnswers extends StatefulWidget {
 }
 
 class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
+  /// Position of the question being shown.
   int index = 0;
 
   @override
@@ -43,35 +49,33 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
     );
   }
 
-  /// Shows the question at index with its answer and Previous/Next buttons.
+  /// Shows the current question, its correct answer, and Previous/Next buttons.
   Widget questionPage() {
     final question = widget.incorrect[index];
+    final isFirst = index == 0;
+    final isLast = index == widget.incorrect.length - 1;
 
     return Column(
       children: [
         Text('Question ${index + 1} of ${widget.incorrect.length}'),
         const SizedBox(height: 16),
+        if (question.figureUrl != null)
+          Image.network(question.figureUrl!, height: 200),
         Text(question.question),
         const SizedBox(height: 8),
-        if (question is MultipleChoiceQuestion)
-          Text('Answer: ${question.options[question.correctOptionIndex - 1]}'),
-        if (question is FillInBlankQuestion)
-          Text('Answer: ${question.acceptableAnswers.first}'),
+        Text('Answer: ${question.correctAnswer}'),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              // null disables the button on the first question
-              onPressed: index > 0 ? () => setState(() => index--) : null,
+              // null greys the button out
+              onPressed: isFirst ? null : () => setState(() => index--),
               child: const Text('Previous'),
             ),
             const SizedBox(width: 16),
             ElevatedButton(
-              // null disables the button on the last question
-              onPressed: index < widget.incorrect.length - 1
-                  ? () => setState(() => index++)
-                  : null,
+              onPressed: isLast ? null : () => setState(() => index++),
               child: const Text('Next'),
             ),
           ],

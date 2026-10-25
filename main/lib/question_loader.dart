@@ -5,10 +5,14 @@ import 'package:http/http.dart' as http;
 import 'question.dart';
 import 'quiz.dart';
 
-/// Fetches all quizzes from the course's web service.
+/// Fetches quizzes from the course's web service.
 class QuestionLoader {
   /// Requests quiz01, quiz02, ... until the server responds with
   /// `"response": false`, and returns all quizzes loaded along the way.
+  ///
+  /// When [user] and [pin] are given, the login-protected `quiz.php`
+  /// service is used. Otherwise the public quiz page is used.
+  /// Throws an [Exception] if no quizzes could be loaded.
   Future<List<Quiz>> getQuizzesFromUrl({String? user, String? pin}) async {
     List<Quiz> allQuizzes = [];
     int i = 1;
@@ -16,23 +20,9 @@ class QuestionLoader {
     while (true) {
       // Turns 1 into "01", 2 into "02"
       String quizNumber = i.toString().padLeft(2, '0');
-      Uri url;
-      if (user != null && pin != null) {
-        // HW2: authenticated quiz service
-        url = Uri.https(
-          'www.cs.utep.edu',
-          '/cheon/cs4381/homework/quiz/quiz.php',
-          {'user': user, 'pin': pin, 'quiz': 'quiz$quizNumber'},
-        );
-      } else {
-        // HW1: original public URL (used by the CLI)
-        url = Uri.parse(
-          'https://www.cs.utep.edu/cheon/cs4381/homework/quiz/?quiz=quiz$quizNumber',
-        );
-      }
+      Uri url = _quizUrl('quiz$quizNumber', user, pin);
 
       try {
-        // 200 means success, anything else is failure
         var response = await http.get(url);
         if (response.statusCode != 200) break;
 
@@ -47,37 +37,12 @@ class QuestionLoader {
         bool isSuccess = jsonMap['response'] ?? false;
         if (!isSuccess) break;
 
-        // Pull the title and question list out of the JSON
-        // quiz.php may send the quiz as a JSON-encoded string
-        var quizData = jsonMap['quiz'];
-        Map<String, dynamic> quizMap =
-            quizData is String ? json.decode(quizData) : quizData;
-        String title = quizMap['name'];
-        List<dynamic> questionList = quizMap['questions'];
-
-        // Turn each JSON question into a Question object
-        List<Question> questions = [];
-        for (var questionMap in questionList) {
-          String stem = questionMap['stem'];
-
-          if (questionMap['type'] == 1) {
-            // Type 1 = multiple choice
-            List<String> options = List<String>.from(questionMap['options']);
-            int answer = questionMap['answer'];
-            questions.add(MultipleChoiceQuestion(stem, options, answer));
-          } else {
-            // Any other type = fill in the blank
-            List<String> answers = List<String>.from(questionMap['answer']);
-            questions.add(FillInBlankQuestion(stem, answers));
-          }
-        }
-
-        allQuizzes.add(Quiz(title, questions));
-        print('Loaded $title ($i)');
+        Quiz quiz = _parseQuiz(jsonMap['quiz']);
+        allQuizzes.add(quiz);
+        print('Loaded ${quiz.title} ($i)');
         i++;
       } catch (e) {
-        // If a quiz fails to load, show which one
-        print('Stopped at i=$i: $e');
+        print('Stopped at quiz$quizNumber: $e');
         break;
       }
     }
@@ -87,5 +52,63 @@ class QuestionLoader {
     }
 
     return allQuizzes;
+  }
+
+  /// Loads every quiz and returns all of their questions in one list.
+  Future<List<Question>> getAllQuestions({String? user, String? pin}) async {
+    List<Quiz> quizzes = await getQuizzesFromUrl(user: user, pin: pin);
+
+    List<Question> allQuestions = [];
+    for (Quiz quiz in quizzes) {
+      allQuestions.addAll(quiz.questions);
+    }
+    return allQuestions;
+  }
+
+  /// Builds the address for [quizName], with the login if one is given.
+  Uri _quizUrl(String quizName, String? user, String? pin) {
+    if (user != null && pin != null) {
+      return Uri.https(
+        'www.cs.utep.edu',
+        '/cheon/cs4381/homework/quiz/quiz.php',
+        {'user': user, 'pin': pin, 'quiz': quizName},
+      );
+    }
+    return Uri.https(
+      'www.cs.utep.edu',
+      '/cheon/cs4381/homework/quiz/',
+      {'quiz': quizName},
+    );
+  }
+
+  /// Turns the server's quiz JSON into a [Quiz].
+  ///
+  /// [quizData] may be a map or a JSON-encoded string of one.
+  Quiz _parseQuiz(dynamic quizData) {
+    Map<String, dynamic> quizMap =
+        quizData is String ? json.decode(quizData) : quizData;
+    String title = quizMap['name'];
+    List<dynamic> questionList = quizMap['questions'];
+
+    List<Question> questions = [];
+    for (var questionMap in questionList) {
+      String stem = questionMap['stem'];
+      String? figure = questionMap['figure'];
+
+      if (questionMap['type'] == 1) {
+        // Type 1 = multiple choice
+        List<String> options = List<String>.from(questionMap['options']);
+        int answer = questionMap['answer'];
+        questions.add(
+          MultipleChoiceQuestion(stem, options, answer, figure: figure),
+        );
+      } else {
+        // Any other type = fill in the blank
+        List<String> answers = List<String>.from(questionMap['answer']);
+        questions.add(FillInBlankQuestion(stem, answers, figure: figure));
+      }
+    }
+
+    return Quiz(title, questions);
   }
 }

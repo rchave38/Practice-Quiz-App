@@ -1,11 +1,17 @@
 import 'package:dartpedia/create_quiz_screen.dart';
+import 'package:dartpedia/login_screen.dart';
 import 'package:dartpedia/take_quiz_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:dartpedia/login_screen.dart';
 
+/// Home screen after logging in, with buttons to create or take a quiz.
 class MainMenu extends StatelessWidget {
+  /// The logged-in user's username.
   final String user;
+
+  /// The logged-in user's PIN.
   final String pin;
+
+  /// Creates the main menu for the given [user] and [pin].
   const MainMenu({super.key, required this.user, required this.pin});
 
   @override
