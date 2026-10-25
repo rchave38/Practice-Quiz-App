@@ -64,6 +64,13 @@ class QuestionPool {
     }
   }
 
+  /// Moves back to the previous question, if there is one.
+  void goToPreviousQuestion() {
+    if (_currentIndex > 0) {
+      _currentIndex--;
+    }
+  }
+
   /// Resets progress and score back to the start.
   void resetQuiz() {
     _currentIndex = 0;
