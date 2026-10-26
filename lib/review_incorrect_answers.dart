@@ -26,31 +26,19 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
         title: const Text('Review Incorrect Answers'),
       ),
       body: Column(
+        // stretch makes every row full width so content starts at the left edge
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: Padding(
+            // Scrolls when the question and answers don't fit on the screen
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(32.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (widget.incorrect.isEmpty)
-                      const Text('No incorrect answers!')
-                    else
-                      questionPage(),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Back to Score Screen'),
-                    ),
-                  ],
-                ),
-              ),
+              child: widget.incorrect.isEmpty
+                  ? const Text('No incorrect answers!')
+                  : questionPage(),
             ),
           ),
-          if (widget.incorrect.isNotEmpty) navigationButtons(),
+          bottomButtons(),
         ],
       ),
     );
@@ -61,6 +49,7 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
     final question = widget.incorrect[index];
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Question ${index + 1} of ${widget.incorrect.length}'),
         const SizedBox(height: 16),
@@ -73,24 +62,38 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
     );
   }
 
-  /// Previous and Next buttons pinned to the bottom corners.
-  Widget navigationButtons() {
-    final isFirst = index == 0;
-    final isLast = index == widget.incorrect.length - 1;
+  /// Previous and Next in the bottom corners, with Back to Score Screen
+  /// centered underneath them.
+  ///
+  /// Previous and Next are greyed out when there is nowhere to go.
+  Widget bottomButtons() {
+    final hasPrevious = index > 0;
+    final hasNext = index < widget.incorrect.length - 1;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
-          ElevatedButton(
-            // null greys the button out
-            onPressed: isFirst ? null : () => setState(() => index--),
-            child: const Text('Previous'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                // null greys the button out
+                onPressed: hasPrevious ? () => setState(() => index--) : null,
+                child: const Text('Previous'),
+              ),
+              ElevatedButton(
+                onPressed: hasNext ? () => setState(() => index++) : null,
+                child: const Text('Next'),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: isLast ? null : () => setState(() => index++),
-            child: const Text('Next'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Back to Score Screen'),
           ),
         ],
       ),

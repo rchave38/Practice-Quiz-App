@@ -131,38 +131,39 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
         title: Text(widget.title.isEmpty ? 'Quiz' : widget.title),
       ),
       body: Column(
+        // stretch makes every row full width so content starts at the left edge
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Fills up as questions are answered
           LinearProgressIndicator(
             value: pool.answeredCount / pool.questions.length,
           ),
           Expanded(
-            child: Padding(
+            // Scrolls when the question and answers don't fit on the screen
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(32.0),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Question ${pool.currentIndex + 1} of ${pool.questions.length}',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Question ${pool.currentIndex + 1} of ${pool.questions.length}',
+                  ),
+                  const SizedBox(height: 16),
+                  if (question.figureUrl != null)
+                    Image.network(question.figureUrl!, height: 200),
+                  Text(question.question),
+                  const SizedBox(height: 16),
+                  if (question is MultipleChoiceQuestion)
+                    for (int i = 0; i < question.options.length; i++)
+                      optionButton(i + 1, question.options[i]),
+                  if (question is FillInBlankQuestion)
+                    TextFormField(
+                      // A new key gives each question its own text box
+                      key: ValueKey(pool.currentIndex),
+                      initialValue: pool.currentAnswer ?? '',
+                      onChanged: saveAnswer,
                     ),
-                    const SizedBox(height: 16),
-                    if (question.figureUrl != null)
-                      Image.network(question.figureUrl!, height: 200),
-                    Text(question.question),
-                    const SizedBox(height: 16),
-                    if (question is MultipleChoiceQuestion)
-                      for (int i = 0; i < question.options.length; i++)
-                        optionButton(i + 1, question.options[i]),
-                    if (question is FillInBlankQuestion)
-                      TextFormField(
-                        // A new key gives each question its own text box
-                        key: ValueKey(pool.currentIndex),
-                        initialValue: pool.currentAnswer ?? '',
-                        onChanged: saveAnswer,
-                      ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
@@ -194,19 +195,23 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
     );
   }
 
-  /// A button for option [number]. The selected option is shown in blue.
+  /// A row for option [number]. The selected option is shown in blue.
   Widget optionButton(int number, String text) {
     bool selected = questionPool!.currentAnswer == number;
 
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: selected ? Colors.blue : null,
-        foregroundColor: selected ? Colors.white : null,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      // Changed ElevatedButton to ListTile for better formatting
+      child: ListTile(
+        tileColor: selected ? Colors.blue.shade50 : Colors.grey.shade100,
+        leading: Icon(
+          selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+        ),
+        title: Text(text),
+        onTap: () {
+          saveAnswer(number);
+        },
       ),
-      onPressed: () {
-        saveAnswer(number);
-      },
-      child: Text(text),
     );
   }
 

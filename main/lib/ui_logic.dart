@@ -8,6 +8,7 @@ class UiLogic {
   final List<Quiz> _quizzes;
   int _quizIndex = 0;
 
+  /// Creates a console menu for the loaded quizzes.
   UiLogic(this._quizzes);
 
   Quiz get _activeQuiz {
