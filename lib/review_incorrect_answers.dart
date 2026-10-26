@@ -18,6 +18,20 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
   /// Position of the question being shown.
   int index = 0;
 
+  /// Moves to the previous incorrect question.
+  void goBack() {
+    setState(() {
+      index--;
+    });
+  }
+
+  /// Moves to the next incorrect question.
+  void goForward() {
+    setState(() {
+      index++;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,11 +92,11 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
             children: [
               ElevatedButton(
                 // null greys the button out
-                onPressed: hasPrevious ? () => setState(() => index--) : null,
+                onPressed: hasPrevious ? goBack : null,
                 child: const Text('Previous'),
               ),
               ElevatedButton(
-                onPressed: hasNext ? () => setState(() => index++) : null,
+                onPressed: hasNext ? goForward : null,
                 child: const Text('Next'),
               ),
             ],

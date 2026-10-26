@@ -85,8 +85,12 @@ class QuestionLoader {
   ///
   /// [quizData] may be a map or a JSON-encoded string of one.
   Quiz _parseQuiz(dynamic quizData) {
-    Map<String, dynamic> quizMap =
-        quizData is String ? json.decode(quizData) : quizData;
+    Map<String, dynamic> quizMap;
+    if (quizData is String) {
+      quizMap = json.decode(quizData);
+    } else {
+      quizMap = quizData;
+    }
     String title = quizMap['name'];
     List<dynamic> questionList = quizMap['questions'];
 

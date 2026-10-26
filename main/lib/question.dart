@@ -4,31 +4,28 @@
 /// [FillInBlankQuestion].
 abstract class Question {
   final String _question;
-  final String? _figure;
+
+  /// The image file name for this question, or null if it has no picture.
+  final String? figure;
 
   /// Creates a question with the given [_question] text and an
   /// optional [figure] image file name.
-  Question(this._question, {String? figure}) : _figure = figure;
+  Question(this._question, {this.figure});
 
   /// The text of the question shown to the user.
   String get question {
     return _question;
   }
 
-  /// The image file name for this question, or null if it has no picture.
-  String? get figure {
-    return _figure;
-  }
-
   /// The web address of this question's picture, or null if it has none.
   String? get figureUrl {
-    if (_figure == null) {
+    if (figure == null) {
       return null;
     }
     return Uri.https(
       'www.cs.utep.edu',
       '/cheon/cs4381/homework/quiz/figure.php',
-      {'name': _figure},
+      {'name': figure},
     ).toString();
   }
 
