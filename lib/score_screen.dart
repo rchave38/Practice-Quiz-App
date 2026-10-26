@@ -25,7 +25,6 @@ class ScoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
         title: const Text('View Score'),
       ),
       body: Padding(

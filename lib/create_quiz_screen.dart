@@ -49,7 +49,6 @@ class _CreateQuizScreenState extends State<CreateQuizScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
         title: const Text('Create a Quiz'),
       ),
       body: Padding(

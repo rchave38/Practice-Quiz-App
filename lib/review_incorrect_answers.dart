@@ -22,7 +22,6 @@ class _ReviewIncorrectAnswersState extends State<ReviewIncorrectAnswers> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
         title: const Text('Review Incorrect Answers'),
       ),
       body: Column(

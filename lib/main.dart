@@ -14,6 +14,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: LoginScreen());
+    return MaterialApp(
+      // Every screen's app bar is blue
+      theme: ThemeData(
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.blue),
+      ),
+      home: const LoginScreen(),
+    );
   }
 }

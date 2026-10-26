@@ -127,7 +127,6 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
         title: Text(widget.title.isEmpty ? 'Quiz' : widget.title),
       ),
       body: Column(
@@ -201,7 +200,6 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
-      // Changed ElevatedButton to ListTile for better formatting
       child: ListTile(
         tileColor: selected ? Colors.blue.shade50 : Colors.grey.shade100,
         leading: Icon(
@@ -218,7 +216,7 @@ class _TakeQuizScreenState extends State<TakeQuizScreen> {
   /// Shown instead of the quiz when loading fails.
   Widget errorScreen() {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.blue, title: const Text('Quiz')),
+      appBar: AppBar(title: const Text('Quiz')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

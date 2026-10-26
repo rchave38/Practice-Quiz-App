@@ -35,10 +35,17 @@ class _LoginScreenState extends State<LoginScreen> {
       error = null;
     });
 
-    bool ok = await LoginService().login(
-      userController.text,
-      pinController.text,
-    );
+    bool ok;
+    try {
+      ok = await LoginService().login(userController.text, pinController.text);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        loading = false;
+        error = 'Could not connect. Check your connection and try again.';
+      });
+      return;
+    }
     if (!mounted) return; // the screen was closed while waiting
 
     if (ok) {
@@ -60,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.blue, title: const Text('Login')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Column(
